@@ -32,6 +32,22 @@ pub fn print_text(issues: &[Issue], quiet: bool) {
         return;
     }
 
+    let file_count = distinct_files(issues);
+    let summary = format!(
+        "{} {} issue{} found across {} file{}",
+        "✗".red().bold(),
+        issues.len(),
+        plural(issues.len()),
+        file_count,
+        plural(file_count),
+    );
+
+    // --quiet: only the one-line summary, skip the per-category listing.
+    if quiet {
+        println!("{summary}");
+        return;
+    }
+
     // Group by category, preserving a stable ordering.
     let mut grouped: BTreeMap<&'static str, Vec<&Issue>> = BTreeMap::new();
     for issue in issues {
@@ -45,11 +61,11 @@ pub fn print_text(issues: &[Issue], quiet: bool) {
         println!("{}", title.bold().underline());
         for issue in items {
             let mode_str = match issue.mode {
-                Some(m) => format!("{:04o}", m),
+                Some(m) => format!("{m:04o}"),
                 None => "----".into(),
             };
             let fix_str = match issue.fix_mode {
-                Some(m) => format!("→ {:04o}", m),
+                Some(m) => format!("→ {m:04o}"),
                 None => String::new(),
             };
             let marker = marker_for(issue.category);
@@ -64,21 +80,15 @@ pub fn print_text(issues: &[Issue], quiet: bool) {
         println!();
     }
 
-    let file_count = {
-        let mut set = std::collections::HashSet::new();
-        for i in issues {
-            set.insert(&i.path);
-        }
-        set.len()
-    };
-    println!(
-        "{} {} issue{} found across {} file{}",
-        "✗".red().bold(),
-        issues.len(),
-        plural(issues.len()),
-        file_count,
-        plural(file_count),
-    );
+    println!("{summary}");
+}
+
+fn distinct_files(issues: &[Issue]) -> usize {
+    let mut set = std::collections::HashSet::new();
+    for i in issues {
+        set.insert(&i.path);
+    }
+    set.len()
 }
 
 fn marker_for(cat: Category) -> colored::ColoredString {

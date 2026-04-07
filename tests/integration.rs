@@ -243,6 +243,32 @@ fn quiet_mode_suppresses_clean_message() {
 }
 
 #[test]
+fn quiet_mode_collapses_issue_listing_to_summary() {
+    let tmp = fixture();
+    let output = Command::cargo_bin("margay")
+        .unwrap()
+        .arg(tmp.path())
+        .arg("--quiet")
+        .assert()
+        .failure()
+        .get_output()
+        .stdout
+        .clone();
+    let s = String::from_utf8_lossy(&output);
+    // Summary line is present
+    assert!(s.contains("3 issues found"), "summary missing: {s}");
+    // Per-category listings are NOT present
+    assert!(
+        !s.contains("Shell scripts missing +x"),
+        "category header should be hidden in --quiet: {s}"
+    );
+    assert!(
+        !s.contains("Sensitive files too open"),
+        "category header should be hidden in --quiet: {s}"
+    );
+}
+
+#[test]
 fn version_flag_prints_version() {
     Command::cargo_bin("margay")
         .unwrap()

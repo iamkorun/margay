@@ -11,23 +11,30 @@ pub mod fix;
 pub mod report;
 pub mod walker;
 
-/// Audit file permissions in a project tree.
-///
-/// margay walks your project (respecting .gitignore) and flags:
-///
-/// - shell scripts that are missing the user-execute bit
-/// - sensitive files (.env, *.key, *.pem, id_rsa, ...) with permissions
-///   looser than 0600
-/// - source files (*.rs, *.py, *.md, ...) that are marked executable
-///
-/// Examples:
-///
-///   margay                    # audit current directory
-///   margay ./my-project       # audit a specific path
-///   margay --fix              # auto-correct issues
-///   margay --json             # machine-readable output for CI
 #[derive(Debug, Parser)]
-#[command(name = "margay", version, about = "Audit file permissions in a project tree", long_about = None)]
+#[command(
+    name = "margay",
+    version,
+    about = "Audit file permissions in a project tree",
+    long_about = "Audit file permissions in a project tree.\n\n\
+        margay walks your project (respecting .gitignore) and flags three \
+        kinds of trouble:\n\n  \
+        * shell scripts that are missing the user-execute bit\n  \
+        * sensitive files (.env, *.key, *.pem, id_rsa, ...) with permissions \
+        looser than 0600\n  \
+        * source files (*.rs, *.py, *.md, ...) that are marked executable",
+    after_help = "EXAMPLES:\n  \
+        margay                    audit the current directory\n  \
+        margay ./my-project       audit a specific path\n  \
+        margay --fix              auto-correct every detected issue\n  \
+        margay --json             machine-readable output for CI\n  \
+        margay --quiet            silence the clean-tree banner\n\n\
+        EXIT CODES:\n  \
+        0  no issues (or --fix succeeded)\n  \
+        1  issues were reported\n  \
+        2  bad invocation (path missing, etc.)\n\n\
+        Issue tracker: https://github.com/iamkorun/margay/issues"
+)]
 pub struct Cli {
     /// Path to scan (defaults to current directory).
     #[arg(value_name = "PATH")]
