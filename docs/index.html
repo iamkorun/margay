@@ -11,12 +11,12 @@
 <meta property="og:url" content="https://iamkorun.github.io/margay" />
 <meta property="og:title" content="margay — file permission auditor" />
 <meta property="og:description" content="A small spotted cat that watches over your file permissions. Find chmod bugs before they leak secrets or break CI." />
-<meta property="og:image" content="https://iamkorun.github.io/margay/og-image.png" />
+<meta property="og:image" content="https://opengraph.githubassets.com/1/iamkorun/margay" />
 
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="margay — file permission auditor" />
 <meta name="twitter:description" content="Audit and auto-fix file permissions in any project tree. Pure Rust, zero config." />
-<meta name="twitter:image" content="https://iamkorun.github.io/margay/og-image.png" />
+<meta name="twitter:image" content="https://opengraph.githubassets.com/1/iamkorun/margay" />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E" />
 
@@ -47,7 +47,7 @@ tailwind.config = {
 </script>
 
 <style>
-  html, body { background:#1C1A17; color:#F4ECD8; }
+  html, body { background:#1C1A17; color:#F4ECD8; overflow-x:hidden; }
   body { font-family:'Cabinet Grotesk', system-ui, sans-serif; }
   code, pre { font-family:'JetBrains Mono', ui-monospace, monospace; }
   .grain::before {
@@ -69,12 +69,12 @@ tailwind.config = {
 <body class="grain antialiased">
 
 <!-- nav -->
-<header class="relative z-10 flex items-center justify-between px-6 md:px-12 py-6">
+<header class="relative z-10 flex items-center justify-between px-5 md:px-12 py-5 md:py-6">
   <a href="#" class="flex items-center gap-2 font-display font-bold text-xl tracking-tight">
     <span class="text-peach">margay</span>
-    <span class="text-stone-500 text-sm font-mono">v0.1.0</span>
+    <span class="text-stone-500 text-xs md:text-sm font-mono">v0.1.0</span>
   </a>
-  <nav class="flex items-center gap-6 text-sm text-stone-400">
+  <nav class="flex items-center gap-4 md:gap-6 text-xs md:text-sm text-stone-400">
     <a href="#features" class="hover:text-peach transition">features</a>
     <a href="#install" class="hover:text-peach transition">install</a>
     <a href="https://github.com/iamkorun/margay" class="hover:text-peach transition">github</a>
@@ -82,33 +82,34 @@ tailwind.config = {
 </header>
 
 <!-- hero -->
-<section class="relative z-10 grid md:grid-cols-[1.1fr_0.9fr] gap-10 items-center px-6 md:px-12 pt-8 pb-24 min-h-[100dvh]">
-  <div>
-    <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-6">a small cat with sharp eyes</p>
-    <h1 class="font-display font-extrabold text-5xl md:text-7xl leading-[0.95] tracking-tight text-cream mb-6">
+<section class="relative z-10 grid md:grid-cols-[1.1fr_0.9fr] gap-10 items-center px-5 md:px-12 pt-6 pb-20 md:pb-24 min-h-[100dvh]">
+  <div class="min-w-0">
+    <p class="font-mono text-[0.65rem] md:text-xs uppercase tracking-[0.2em] text-terra mb-5 md:mb-6">a small cat with sharp eyes</p>
+    <h1 class="font-display font-extrabold text-[2.6rem] sm:text-5xl md:text-7xl leading-[0.95] tracking-tight text-cream mb-6 break-words">
       margay watches<br/>your <span class="text-peach">file permissions</span>.
     </h1>
-    <p class="text-lg md:text-xl text-stone-400 max-w-xl leading-relaxed mb-10">
+    <p class="text-base md:text-xl text-stone-400 max-w-xl leading-relaxed mb-8 md:mb-10">
       A tiny Rust CLI that walks your project tree and spots bad <code class="text-butter">chmod</code> — missing exec bits, world-readable secrets, source files marked executable. Then patches them in one pass.
     </p>
 
     <div class="flex flex-col sm:flex-row gap-3 max-w-xl">
       <button id="copy-btn"
-        class="copy-btn group flex-1 flex items-center justify-between gap-3 bg-ink2 border border-stone-700 hover:border-peach transition rounded-md px-4 py-3 text-left">
-        <code class="text-cream text-sm md:text-base"><span class="text-stone-500">$</span> cargo install margay</code>
-        <span id="copy-label" class="text-xs font-mono text-stone-500 group-hover:text-peach">copy</span>
+        class="copy-btn group flex-1 min-w-0 flex items-center justify-between gap-3 bg-ink2 border border-stone-700 hover:border-peach transition rounded-md px-4 py-3 text-left"
+        aria-label="Copy install command to clipboard">
+        <code class="text-cream text-xs md:text-sm break-all min-w-0"><span class="text-stone-500">$</span> cargo install --git github.com/iamkorun/margay</code>
+        <span id="copy-label" class="text-xs font-mono text-stone-500 group-hover:text-peach shrink-0">copy</span>
       </button>
       <a href="https://github.com/iamkorun/margay"
-        class="flex items-center justify-center bg-peach text-ink font-display font-bold px-5 py-3 rounded-md hover:bg-butter transition">
+        class="flex items-center justify-center bg-peach text-ink font-display font-bold px-5 py-3 rounded-md hover:bg-butter transition whitespace-nowrap">
         view on github →
       </a>
     </div>
 
-    <div class="mt-8 flex items-center gap-5 text-xs font-mono text-stone-500">
+    <div class="mt-6 md:mt-8 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-mono text-stone-500">
       <span>🦀 pure rust</span>
-      <span>·</span>
+      <span class="hidden sm:inline">·</span>
       <span>zero config</span>
-      <span>·</span>
+      <span class="hidden sm:inline">·</span>
       <span>respects .gitignore</span>
     </div>
   </div>
@@ -158,9 +159,9 @@ tailwind.config = {
 </section>
 
 <!-- features (zig-zag, 2-col) -->
-<section id="features" class="relative z-10 px-6 md:px-12 py-24 border-t border-stone-800">
-  <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-3">what margay sees</p>
-  <h2 class="font-display font-extrabold text-4xl md:text-5xl text-cream mb-16 max-w-2xl leading-tight">
+<section id="features" class="relative z-10 px-5 md:px-12 py-20 md:py-24 border-t border-stone-800 overflow-x-hidden">
+  <p class="font-mono text-[0.65rem] md:text-xs uppercase tracking-[0.2em] text-terra mb-3">what margay sees</p>
+  <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-cream mb-12 md:mb-16 max-w-2xl leading-tight">
     Three permission bugs that quietly ruin your week.
   </h2>
 
@@ -176,16 +177,18 @@ tailwind.config = {
         </p>
       </div>
       <pre class="bg-ink2 border border-stone-800 rounded-md p-5 text-sm overflow-x-auto"><code><span class="text-stone-500">$ margay</span>
-<span class="text-butter">MEDIUM</span>  scripts/deploy.sh   <span class="text-stone-500">0644</span>  shell script not executable
-<span class="text-butter">MEDIUM</span>  scripts/migrate.sh  <span class="text-stone-500">0644</span>  shell script not executable
+<span class="text-cream">Shell scripts missing +x</span>
+  <span class="text-butter">+x</span> scripts/deploy.sh    <span class="text-stone-500">0644</span> <span class="text-stone-500">→ 0744</span>
+  <span class="text-butter">+x</span> scripts/migrate.sh   <span class="text-stone-500">0644</span> <span class="text-stone-500">→ 0744</span>
 </code></pre>
     </div>
 
     <!-- feature 2 -->
     <div class="grid md:grid-cols-2 gap-10 items-center">
       <pre class="md:order-1 order-2 bg-ink2 border border-stone-800 rounded-md p-5 text-sm overflow-x-auto"><code><span class="text-stone-500">$ margay</span>
-<span class="text-terra">HIGH</span>  .env             <span class="text-stone-500">0644</span>  sensitive file world-readable
-<span class="text-terra">HIGH</span>  secrets/api.key  <span class="text-stone-500">0664</span>  sensitive file group-readable
+<span class="text-cream">Sensitive files too open</span>
+  <span class="text-terra">!!</span> .env              <span class="text-stone-500">0644</span> <span class="text-stone-500">→ 0600</span>
+  <span class="text-terra">!!</span> secrets/api.key   <span class="text-stone-500">0664</span> <span class="text-stone-500">→ 0600</span>
 </code></pre>
       <div class="md:order-2 order-1">
         <p class="font-mono text-xs text-butter mb-3">002 / loose secrets</p>
@@ -209,7 +212,7 @@ tailwind.config = {
 margay: fixed 5 issue(s)
 
 <span class="text-stone-500">$ margay</span>
-✓ no issues found in 312 files.
+<span class="text-sage">✓</span> no permission issues found
 </code></pre>
     </div>
 
@@ -217,11 +220,11 @@ margay: fixed 5 issue(s)
 </section>
 
 <!-- CI integration -->
-<section id="install" class="relative z-10 px-6 md:px-12 py-24 border-t border-stone-800">
-  <div class="grid md:grid-cols-[0.9fr_1.1fr] gap-12 items-start max-w-5xl">
-    <div>
-      <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-3">drop into ci</p>
-      <h2 class="font-display font-extrabold text-4xl md:text-5xl text-cream leading-tight mb-6">
+<section id="install" class="relative z-10 px-5 md:px-12 py-20 md:py-24 border-t border-stone-800 overflow-x-hidden">
+  <div class="grid md:grid-cols-[0.9fr_1.1fr] gap-10 md:gap-12 items-start max-w-5xl">
+    <div class="min-w-0">
+      <p class="font-mono text-[0.65rem] md:text-xs uppercase tracking-[0.2em] text-terra mb-3">drop into ci</p>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-cream leading-tight mb-6">
         One job, zero regressions.
       </h2>
       <p class="text-stone-400 leading-relaxed mb-8">
@@ -241,8 +244,9 @@ margay: fixed 5 issue(s)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: cargo install margay
-      - run: margay --json
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo install --git https://github.com/iamkorun/margay
+      - run: margay
 </code></pre>
   </div>
 </section>
@@ -271,8 +275,9 @@ margay: fixed 5 issue(s)
   const btn = document.getElementById('copy-btn');
   const label = document.getElementById('copy-label');
   btn?.addEventListener('click', async () => {
+    // Always copy the full URL even though the button text is shortened.
     try {
-      await navigator.clipboard.writeText('cargo install margay');
+      await navigator.clipboard.writeText('cargo install --git https://github.com/iamkorun/margay');
       label.textContent = 'copied!';
       label.classList.add('text-peach');
       setTimeout(() => { label.textContent = 'copy'; label.classList.remove('text-peach'); }, 2000);
