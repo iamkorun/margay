@@ -27,3 +27,15 @@ pub fn check(path: &Path) -> Option<Issue> {
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn covers_common_source_extensions() {
+        for ext in ["rs", "go", "py", "ts", "js", "json", "toml", "yaml", "md"] {
+            assert!(SOURCE_EXTS.contains(&ext), "missing extension: {ext}");
+        }
+    }
+}

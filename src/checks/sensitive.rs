@@ -44,3 +44,47 @@ pub fn check(path: &Path) -> Option<Issue> {
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn classifies_dot_env_as_sensitive() {
+        assert!(is_sensitive(&PathBuf::from(".env")));
+        assert!(is_sensitive(&PathBuf::from(".env.production")));
+        assert!(is_sensitive(&PathBuf::from(".env.local")));
+        assert!(is_sensitive(&PathBuf::from("project/.env")));
+    }
+
+    #[test]
+    fn classifies_key_files_as_sensitive() {
+        assert!(is_sensitive(&PathBuf::from("server.key")));
+        assert!(is_sensitive(&PathBuf::from("cert.pem")));
+        assert!(is_sensitive(&PathBuf::from("ca.crt")));
+        assert!(is_sensitive(&PathBuf::from("bundle.pfx")));
+    }
+
+    #[test]
+    fn classifies_ssh_private_keys_as_sensitive() {
+        assert!(is_sensitive(&PathBuf::from("id_rsa")));
+        assert!(is_sensitive(&PathBuf::from("id_ed25519")));
+        assert!(is_sensitive(&PathBuf::from("id_dsa")));
+        assert!(is_sensitive(&PathBuf::from("id_ecdsa")));
+    }
+
+    #[test]
+    fn classifies_normal_files_as_not_sensitive() {
+        assert!(!is_sensitive(&PathBuf::from("README.md")));
+        assert!(!is_sensitive(&PathBuf::from("main.rs")));
+        assert!(!is_sensitive(&PathBuf::from("notes.txt")));
+        assert!(!is_sensitive(&PathBuf::from("envrc"))); // not .env
+    }
+
+    #[test]
+    fn case_insensitive_match() {
+        assert!(is_sensitive(&PathBuf::from("ID_RSA")));
+        assert!(is_sensitive(&PathBuf::from("server.KEY")));
+    }
+}

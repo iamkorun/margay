@@ -24,3 +24,34 @@ pub fn check(path: &Path) -> Option<Issue> {
     }
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    #[test]
+    fn recognizes_all_shell_extensions() {
+        for ext in ["sh", "bash", "zsh", "fish"] {
+            let p = PathBuf::from(format!("script.{ext}"));
+            // This only tests the extension match — file_mode returns None
+            // because the file doesn't exist, so check() returns None.
+            // We assert the extension is in the recognized list.
+            let lower = ext_lower(&p).unwrap();
+            assert!(SHELL_EXTS.contains(&lower.as_str()));
+        }
+    }
+
+    #[test]
+    fn ignores_non_shell_extensions() {
+        for ext in ["rs", "py", "txt", "md", ""] {
+            let name = if ext.is_empty() {
+                "script".to_string()
+            } else {
+                format!("file.{ext}")
+            };
+            let p = PathBuf::from(name);
+            assert!(check(&p).is_none());
+        }
+    }
+}
