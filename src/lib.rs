@@ -58,13 +58,20 @@ pub fn run() -> Result<ExitCode> {
 
 /// Test-friendly entry point.
 pub fn run_with(cli: Cli) -> Result<ExitCode> {
-    let root = cli.path.clone().unwrap_or_else(|| PathBuf::from("."));
+    let root = cli.path.unwrap_or_else(|| PathBuf::from("."));
 
     if !root.exists() {
         anyhow::bail!("path does not exist: {}", root.display());
     }
 
-    let files = walker::collect_files(&root)?;
+    if !root.is_dir() && !root.is_file() {
+        anyhow::bail!(
+            "path is not a regular file or directory: {}",
+            root.display()
+        );
+    }
+
+    let files = walker::collect_files(&root, cli.verbose)?;
     if cli.verbose && !cli.json {
         eprintln!("margay: scanned {} files", files.len());
     }

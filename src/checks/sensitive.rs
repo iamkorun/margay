@@ -29,16 +29,17 @@ pub fn check(path: &Path) -> Option<Issue> {
         return None;
     }
     let mode = file_mode(path)?;
-    // Anything outside the owner-rwx bits (0o700) is "too open".
+    // Anything in the group/other bits is "too open" for a secret.
     if mode & 0o077 != 0 {
-        let fix_mode = mode & !0o077 & 0o7777;
-        let fix_mode = (fix_mode & !0o177) | 0o600; // ensure 0600 for owner
+        // The fix is always 0o600 (owner read+write, nothing else):
+        // sensitive files don't need to be executable, and they
+        // certainly don't need to be group/world readable.
         return Some(Issue {
             path: path.to_path_buf(),
             category: Category::SensitiveTooOpen,
             mode: Some(mode),
-            fix_mode: Some(fix_mode),
-            message: format!("sensitive file is world/group readable (mode {:o})", mode),
+            fix_mode: Some(0o600),
+            message: format!("sensitive file is group/world accessible (mode {mode:o})"),
         });
     }
     None

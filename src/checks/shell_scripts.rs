@@ -19,7 +19,7 @@ pub fn check(path: &Path) -> Option<Issue> {
             category: Category::ShellNeedsExec,
             mode: Some(mode),
             fix_mode: Some(fix_mode),
-            message: format!("shell script is not user-executable (mode {:o})", mode),
+            message: format!("shell script is not user-executable (mode {mode:o})"),
         });
     }
     None

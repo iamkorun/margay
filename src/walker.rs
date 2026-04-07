@@ -2,14 +2,18 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use ignore::WalkBuilder;
 
 /// Collect every file under `root`, honoring .gitignore rules.
 ///
 /// Symlinks are not followed. Directories are skipped (we only
 /// care about regular files for the permission checks).
-pub fn collect_files(root: &Path) -> Result<Vec<PathBuf>> {
+///
+/// When `verbose` is true, walker errors (e.g. permission denied
+/// on a subdirectory) are reported on stderr; otherwise they are
+/// silently skipped to keep CI output clean.
+pub fn collect_files(root: &Path, verbose: bool) -> Result<Vec<PathBuf>> {
     let mut files = Vec::new();
 
     let walker = WalkBuilder::new(root)
@@ -24,14 +28,15 @@ pub fn collect_files(root: &Path) -> Result<Vec<PathBuf>> {
         let dent = match dent {
             Ok(d) => d,
             Err(e) => {
-                eprintln!("margay: skipping entry: {e}");
+                if verbose {
+                    eprintln!("margay: skipping entry: {e}");
+                }
                 continue;
             }
         };
 
-        let ft = match dent.file_type() {
-            Some(ft) => ft,
-            None => continue,
+        let Some(ft) = dent.file_type() else {
+            continue;
         };
 
         if !ft.is_file() {
@@ -44,12 +49,4 @@ pub fn collect_files(root: &Path) -> Result<Vec<PathBuf>> {
     // Deterministic order makes output stable and tests reliable.
     files.sort();
     Ok(files)
-}
-
-/// Canonicalize a path, falling back to the original on error.
-#[allow(dead_code)]
-pub fn canonicalize_or(path: &Path) -> PathBuf {
-    path.canonicalize()
-        .with_context(|| format!("canonicalize {}", path.display()))
-        .unwrap_or_else(|_| path.to_path_buf())
 }

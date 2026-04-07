@@ -22,7 +22,7 @@ pub fn check(path: &Path) -> Option<Issue> {
             category: Category::SourceExecutable,
             mode: Some(mode),
             fix_mode: Some(fix_mode),
-            message: format!("source file is marked executable (mode {:o})", mode),
+            message: format!("source file is marked executable (mode {mode:o})"),
         });
     }
     None
