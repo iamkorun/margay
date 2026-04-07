@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 
 pub mod executable_source;
 pub mod sensitive;
@@ -14,10 +14,22 @@ pub struct Issue {
     pub path: PathBuf,
     pub category: Category,
     /// Current mode (only the low 12 bits are meaningful). None on Windows.
+    #[serde(serialize_with = "octal_string")]
     pub mode: Option<u32>,
     /// Mode we would set in --fix mode. None on Windows.
+    #[serde(serialize_with = "octal_string")]
     pub fix_mode: Option<u32>,
     pub message: String,
+}
+
+/// Serialize a Unix permission mode as a four-digit octal string
+/// (e.g. "0644") so the JSON output is human-readable. `None` becomes
+/// JSON `null`.
+fn octal_string<S: Serializer>(value: &Option<u32>, ser: S) -> Result<S::Ok, S::Error> {
+    match value {
+        Some(m) => ser.serialize_str(&format!("{m:04o}")),
+        None => ser.serialize_none(),
+    }
 }
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]

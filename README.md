@@ -35,37 +35,45 @@ Named after the [margay](https://en.wikipedia.org/wiki/Margay) — a small spott
 
 ## Demo
 
-```
+```text
 $ margay
+Sensitive files too open
+  !! ./.env 0644 → 0600
 
-  Severity   Path                       Mode    Issue
-  ─────────  ─────────────────────────  ──────  ──────────────────────────────
-  HIGH       .env                       0644    sensitive file world-readable
-  HIGH       secrets/api.key            0664    sensitive file group-readable
-  MEDIUM     scripts/deploy.sh          0644    shell script not executable
-  MEDIUM     scripts/migrate.sh         0644    shell script not executable
-  LOW        docs/architecture.md       0755    source file marked executable
+Shell scripts missing +x
+  +x ./deploy.sh 0644 → 0744
 
-  ✗ 5 issues found in 312 files. Run `margay --fix` to repair.
+Source files marked executable
+  -x ./main.rs 0755 → 0644
+
+✗ 3 issues found across 3 files
 ```
+
+The first column is a category marker (`!!` sensitive, `+x` should be exec, `-x` shouldn't be), then the path, the current mode, and the mode `--fix` would set.
 
 ## Quick Start
 
 ```sh
-cargo install margay
+# install (from source until the crate is published)
+cargo install --git https://github.com/iamkorun/margay
+
+# audit your project
 cd your-project/
 margay
+
+# auto-correct everything
+margay --fix
 ```
 
 ## Installation
 
-### From crates.io
+### From source (works today)
 
 ```sh
-cargo install margay
+cargo install --git https://github.com/iamkorun/margay
 ```
 
-### From source
+or clone and build:
 
 ```sh
 git clone https://github.com/iamkorun/margay.git
@@ -73,9 +81,15 @@ cd margay
 cargo install --path .
 ```
 
+### From crates.io (after publish)
+
+```sh
+cargo install margay
+```
+
 ### Binary releases
 
-Pre-built binaries for Linux and macOS are available on the [Releases](https://github.com/iamkorun/margay/releases) page.
+Pre-built binaries for Linux and macOS will be published to the [Releases](https://github.com/iamkorun/margay/releases) page once the first tagged release lands.
 
 ## Usage
 
@@ -106,28 +120,51 @@ margay --json
 
 ```json
 {
+  "total": 3,
   "issues": [
     {
-      "path": ".env",
+      "path": "./.env",
+      "category": "sensitive-too-open",
       "mode": "0644",
-      "severity": "high",
-      "kind": "sensitive_file_loose",
-      "message": "sensitive file world-readable"
+      "fix_mode": "0600",
+      "message": "sensitive file is group/world accessible (mode 644)"
+    },
+    {
+      "path": "./deploy.sh",
+      "category": "shell-needs-exec",
+      "mode": "0644",
+      "fix_mode": "0744",
+      "message": "shell script is not user-executable (mode 644)"
+    },
+    {
+      "path": "./main.rs",
+      "category": "source-executable",
+      "mode": "0755",
+      "fix_mode": "0644",
+      "message": "source file is marked executable (mode 755)"
     }
-  ],
-  "scanned": 312,
-  "found": 1
+  ]
 }
 ```
 
+`category` is one of `sensitive-too-open`, `shell-needs-exec`, or `source-executable`. `mode` and `fix_mode` are 4-digit octal strings.
+
 ### Quiet mode
 
+`--quiet` collapses the per-category listing to a single summary line — useful when you only want the headline number in CI logs.
+
 ```sh
-margay --quiet
-# Exit code 0 = clean
-# Exit code 1 = issues found
-# Exit code 2 = runtime error
+$ margay --quiet
+✗ 3 issues found across 3 files
 ```
+
+The exit code is the same in every mode:
+
+| Code | Meaning |
+|------|---------|
+| `0`  | No issues (or `--fix` succeeded) |
+| `1`  | One or more issues found |
+| `2`  | Runtime error (path missing, etc.) |
 
 ## Flags
 
@@ -165,19 +202,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
       - name: Install margay
-        run: cargo install margay
+        run: cargo install --git https://github.com/iamkorun/margay
       - name: Audit file permissions
-        run: margay --json
+        run: margay
 ```
 
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| `0` | No issues found |
-| `1` | One or more issues found |
-| `2` | Runtime error (path missing, permission denied) |
+The job fails on any finding because `margay` exits non-zero. Add `--json` if you want to pipe the result into another step.
 
 ## Contributing
 

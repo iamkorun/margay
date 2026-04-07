@@ -70,7 +70,24 @@ fn json_mode_outputs_structured_report() {
         .clone();
     let v: serde_json::Value = serde_json::from_slice(&output).unwrap();
     assert_eq!(v["total"], 3);
-    assert!(v["issues"].as_array().unwrap().len() == 3);
+    let issues = v["issues"].as_array().unwrap();
+    assert_eq!(issues.len(), 3);
+
+    // Mode and fix_mode must be human-readable octal strings, not raw decimals.
+    for issue in issues {
+        let mode = issue["mode"].as_str().expect("mode should be a string");
+        assert!(
+            mode.starts_with('0') && mode.len() == 4,
+            "mode should be a 4-digit octal string, got: {mode}"
+        );
+        let fix = issue["fix_mode"]
+            .as_str()
+            .expect("fix_mode should be a string");
+        assert!(
+            fix.starts_with('0') && fix.len() == 4,
+            "fix_mode should be a 4-digit octal string, got: {fix}"
+        );
+    }
 }
 
 #[test]
