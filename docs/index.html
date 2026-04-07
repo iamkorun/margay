@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>margay 🐱 — file permission auditor for project trees</title>
+<meta name="description" content="margay is a tiny Rust CLI that audits (and auto-fixes) file permissions across your project — bad exec bits, world-readable secrets, and accidentally executable source files." />
+<link rel="canonical" href="https://iamkorun.github.io/margay" />
+
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://iamkorun.github.io/margay" />
+<meta property="og:title" content="margay — file permission auditor" />
+<meta property="og:description" content="A small spotted cat that watches over your file permissions. Find chmod bugs before they leak secrets or break CI." />
+<meta property="og:image" content="https://iamkorun.github.io/margay/og-image.png" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="margay — file permission auditor" />
+<meta name="twitter:description" content="Audit and auto-fix file permissions in any project tree. Pure Rust, zero config." />
+<meta name="twitter:image" content="https://iamkorun.github.io/margay/og-image.png" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='80' font-size='80'%3E🐱%3C/text%3E%3C/svg%3E" />
+
+<link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@500,700,800&f[]=jetbrains-mono@400,500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com/3.4.16"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        ink:    '#1C1A17',
+        ink2:   '#221F1B',
+        cream:  '#F4ECD8',
+        peach:  '#FFB783',
+        butter: '#F4D58D',
+        sage:   '#A8C3A0',
+        terra:  '#E07856',
+      },
+      fontFamily: {
+        display: ['"Cabinet Grotesk"', 'system-ui', 'sans-serif'],
+        mono:    ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+      },
+    },
+  },
+}
+</script>
+
+<style>
+  html, body { background:#1C1A17; color:#F4ECD8; }
+  body { font-family:'Cabinet Grotesk', system-ui, sans-serif; }
+  code, pre { font-family:'JetBrains Mono', ui-monospace, monospace; }
+  .grain::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:1;
+    background-image: radial-gradient(rgba(255,183,131,0.04) 1px, transparent 1px);
+    background-size: 3px 3px; mix-blend-mode: overlay;
+  }
+  .copy-btn:active { transform: scale(0.98); }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.169.0/build/three.module.js" } }
+</script>
+</head>
+
+<body class="grain antialiased">
+
+<!-- nav -->
+<header class="relative z-10 flex items-center justify-between px-6 md:px-12 py-6">
+  <a href="#" class="flex items-center gap-2 font-display font-bold text-xl tracking-tight">
+    <span class="text-peach">margay</span>
+    <span class="text-stone-500 text-sm font-mono">v0.1.0</span>
+  </a>
+  <nav class="flex items-center gap-6 text-sm text-stone-400">
+    <a href="#features" class="hover:text-peach transition">features</a>
+    <a href="#install" class="hover:text-peach transition">install</a>
+    <a href="https://github.com/iamkorun/margay" class="hover:text-peach transition">github</a>
+  </nav>
+</header>
+
+<!-- hero -->
+<section class="relative z-10 grid md:grid-cols-[1.1fr_0.9fr] gap-10 items-center px-6 md:px-12 pt-8 pb-24 min-h-[100dvh]">
+  <div>
+    <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-6">a small cat with sharp eyes</p>
+    <h1 class="font-display font-extrabold text-5xl md:text-7xl leading-[0.95] tracking-tight text-cream mb-6">
+      margay watches<br/>your <span class="text-peach">file permissions</span>.
+    </h1>
+    <p class="text-lg md:text-xl text-stone-400 max-w-xl leading-relaxed mb-10">
+      A tiny Rust CLI that walks your project tree and spots bad <code class="text-butter">chmod</code> — missing exec bits, world-readable secrets, source files marked executable. Then patches them in one pass.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-3 max-w-xl">
+      <button id="copy-btn"
+        class="copy-btn group flex-1 flex items-center justify-between gap-3 bg-ink2 border border-stone-700 hover:border-peach transition rounded-md px-4 py-3 text-left">
+        <code class="text-cream text-sm md:text-base"><span class="text-stone-500">$</span> cargo install margay</code>
+        <span id="copy-label" class="text-xs font-mono text-stone-500 group-hover:text-peach">copy</span>
+      </button>
+      <a href="https://github.com/iamkorun/margay"
+        class="flex items-center justify-center bg-peach text-ink font-display font-bold px-5 py-3 rounded-md hover:bg-butter transition">
+        view on github →
+      </a>
+    </div>
+
+    <div class="mt-8 flex items-center gap-5 text-xs font-mono text-stone-500">
+      <span>🦀 pure rust</span>
+      <span>·</span>
+      <span>zero config</span>
+      <span>·</span>
+      <span>respects .gitignore</span>
+    </div>
+  </div>
+
+  <!-- mascot -->
+  <div class="relative aspect-square w-full max-w-[520px] mx-auto">
+    <canvas id="mascot" class="hidden md:block w-full h-full"></canvas>
+    <!-- mobile fallback: illustrated SVG margay -->
+    <svg viewBox="0 0 240 240" class="md:hidden w-full h-full" aria-label="Illustration of a margay cat">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3a2f24"/>
+          <stop offset="100%" stop-color="#1C1A17"/>
+        </radialGradient>
+      </defs>
+      <circle cx="120" cy="120" r="120" fill="url(#bg)"/>
+      <!-- body -->
+      <ellipse cx="120" cy="160" rx="55" ry="42" fill="#FFB783"/>
+      <!-- head -->
+      <circle cx="120" cy="105" r="48" fill="#FFB783"/>
+      <!-- ears -->
+      <polygon points="78,75 88,40 102,72" fill="#FFB783"/>
+      <polygon points="138,72 152,40 162,75" fill="#FFB783"/>
+      <polygon points="84,72 90,52 98,70" fill="#1C1A17"/>
+      <polygon points="142,70 150,52 156,72" fill="#1C1A17"/>
+      <!-- spots -->
+      <circle cx="100" cy="120" r="5" fill="#1C1A17" opacity="0.7"/>
+      <circle cx="140" cy="118" r="5" fill="#1C1A17" opacity="0.7"/>
+      <circle cx="118" cy="138" r="4" fill="#1C1A17" opacity="0.7"/>
+      <circle cx="95" cy="170" r="6" fill="#1C1A17" opacity="0.6"/>
+      <circle cx="145" cy="170" r="6" fill="#1C1A17" opacity="0.6"/>
+      <circle cx="120" cy="185" r="5" fill="#1C1A17" opacity="0.6"/>
+      <!-- eyes -->
+      <ellipse cx="103" cy="100" rx="7" ry="9" fill="#1C1A17"/>
+      <ellipse cx="137" cy="100" rx="7" ry="9" fill="#1C1A17"/>
+      <circle cx="105" cy="97" r="2" fill="#F4ECD8"/>
+      <circle cx="139" cy="97" r="2" fill="#F4ECD8"/>
+      <!-- nose -->
+      <polygon points="116,115 124,115 120,121" fill="#E07856"/>
+      <!-- whiskers -->
+      <line x1="90" y1="118" x2="70" y2="115" stroke="#F4ECD8" stroke-width="1"/>
+      <line x1="90" y1="122" x2="70" y2="125" stroke="#F4ECD8" stroke-width="1"/>
+      <line x1="150" y1="118" x2="170" y2="115" stroke="#F4ECD8" stroke-width="1"/>
+      <line x1="150" y1="122" x2="170" y2="125" stroke="#F4ECD8" stroke-width="1"/>
+    </svg>
+  </div>
+</section>
+
+<!-- features (zig-zag, 2-col) -->
+<section id="features" class="relative z-10 px-6 md:px-12 py-24 border-t border-stone-800">
+  <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-3">what margay sees</p>
+  <h2 class="font-display font-extrabold text-4xl md:text-5xl text-cream mb-16 max-w-2xl leading-tight">
+    Three permission bugs that quietly ruin your week.
+  </h2>
+
+  <div class="space-y-24 max-w-5xl">
+
+    <!-- feature 1 -->
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <p class="font-mono text-xs text-butter mb-3">001 / exec bits</p>
+        <h3 class="font-display font-bold text-2xl md:text-3xl text-cream mb-4">Scripts that forgot to be executable.</h3>
+        <p class="text-stone-400 leading-relaxed">
+          You wrote <code class="text-peach">deploy.sh</code> on Windows. You committed it. CI runs it. CI dies with <code class="text-peach">permission denied</code>. margay flags every shell script missing the user-execute bit so you can patch them before the pager fires.
+        </p>
+      </div>
+      <pre class="bg-ink2 border border-stone-800 rounded-md p-5 text-sm overflow-x-auto"><code><span class="text-stone-500">$ margay</span>
+<span class="text-butter">MEDIUM</span>  scripts/deploy.sh   <span class="text-stone-500">0644</span>  shell script not executable
+<span class="text-butter">MEDIUM</span>  scripts/migrate.sh  <span class="text-stone-500">0644</span>  shell script not executable
+</code></pre>
+    </div>
+
+    <!-- feature 2 -->
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <pre class="md:order-1 order-2 bg-ink2 border border-stone-800 rounded-md p-5 text-sm overflow-x-auto"><code><span class="text-stone-500">$ margay</span>
+<span class="text-terra">HIGH</span>  .env             <span class="text-stone-500">0644</span>  sensitive file world-readable
+<span class="text-terra">HIGH</span>  secrets/api.key  <span class="text-stone-500">0664</span>  sensitive file group-readable
+</code></pre>
+      <div class="md:order-2 order-1">
+        <p class="font-mono text-xs text-butter mb-3">002 / loose secrets</p>
+        <h3 class="font-display font-bold text-2xl md:text-3xl text-cream mb-4">Secrets sitting at 0644.</h3>
+        <p class="text-stone-400 leading-relaxed">
+          Every <code class="text-peach">.env</code>, <code class="text-peach">*.key</code>, <code class="text-peach">*.pem</code>, and <code class="text-peach">id_rsa</code> in your tree should be <code class="text-peach">0600</code> or stricter. margay finds the ones that aren't and tells you exactly which line of <code class="text-peach">chmod</code> to run — or just runs it for you with <code class="text-peach">--fix</code>.
+        </p>
+      </div>
+    </div>
+
+    <!-- feature 3 -->
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <p class="font-mono text-xs text-butter mb-3">003 / accidental exec</p>
+        <h3 class="font-display font-bold text-2xl md:text-3xl text-cream mb-4">Source files marked executable.</h3>
+        <p class="text-stone-400 leading-relaxed">
+          A stray <code class="text-peach">chmod -R 755</code> turns <code class="text-peach">README.md</code> and every <code class="text-peach">*.rs</code> into "executables." Harmless, embarrassing, and a permanent eyesore in <code class="text-peach">git status</code>. margay catches them.
+        </p>
+      </div>
+      <pre class="bg-ink2 border border-stone-800 rounded-md p-5 text-sm overflow-x-auto"><code><span class="text-stone-500">$ margay --fix</span>
+margay: fixed 5 issue(s)
+
+<span class="text-stone-500">$ margay</span>
+✓ no issues found in 312 files.
+</code></pre>
+    </div>
+
+  </div>
+</section>
+
+<!-- CI integration -->
+<section id="install" class="relative z-10 px-6 md:px-12 py-24 border-t border-stone-800">
+  <div class="grid md:grid-cols-[0.9fr_1.1fr] gap-12 items-start max-w-5xl">
+    <div>
+      <p class="font-mono text-xs uppercase tracking-[0.2em] text-terra mb-3">drop into ci</p>
+      <h2 class="font-display font-extrabold text-4xl md:text-5xl text-cream leading-tight mb-6">
+        One job, zero regressions.
+      </h2>
+      <p class="text-stone-400 leading-relaxed mb-8">
+        Add margay to GitHub Actions and a permission bug never makes it back into <code class="text-peach">main</code>. Exits non-zero on findings, JSON output for tooling, no flaky network calls.
+      </p>
+      <a href="https://github.com/iamkorun/margay" class="inline-flex items-center gap-2 text-peach font-display font-bold hover:underline">
+        full docs on github →
+      </a>
+    </div>
+
+<pre class="bg-ink2 border border-stone-800 rounded-md p-5 text-xs md:text-sm overflow-x-auto"><code><span class="text-stone-500"># .github/workflows/perms.yml</span>
+<span class="text-butter">name</span>: Audit Permissions
+<span class="text-butter">on</span>: [push, pull_request]
+
+<span class="text-butter">jobs</span>:
+  perms:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cargo install margay
+      - run: margay --json
+</code></pre>
+  </div>
+</section>
+
+<!-- footer -->
+<footer class="relative z-10 px-6 md:px-12 py-12 border-t border-stone-800">
+  <div class="flex flex-col md:flex-row items-center justify-between gap-6 max-w-5xl">
+    <div class="flex items-center gap-4 text-sm text-stone-500 font-mono">
+      <span>made with 🐱 by</span>
+      <a href="https://github.com/iamkorun" class="text-peach hover:underline">@iamkorun</a>
+      <span>· MIT</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="https://github.com/iamkorun/margay/stargazers">
+        <img src="https://img.shields.io/github/stars/iamkorun/margay?style=social" alt="GitHub stars" width="90" height="20"/>
+      </a>
+      <a href="https://buymeacoffee.com/iamkorun">
+        <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me a Coffee" width="160" height="40"/>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<!-- click-to-copy -->
+<script>
+  const btn = document.getElementById('copy-btn');
+  const label = document.getElementById('copy-label');
+  btn?.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText('cargo install margay');
+      label.textContent = 'copied!';
+      label.classList.add('text-peach');
+      setTimeout(() => { label.textContent = 'copy'; label.classList.remove('text-peach'); }, 2000);
+    } catch (e) { label.textContent = 'press ⌘C'; }
+  });
+</script>
+
+<!-- three.js mascot -->
+<script type="module">
+import * as THREE from 'three';
+
+const canvas = document.getElementById('mascot');
+if (canvas && window.matchMedia('(min-width: 768px)').matches) {
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+  camera.position.set(0, 0.2, 5);
+
+  // lights
+  scene.add(new THREE.AmbientLight(0xfff1de, 0.55));
+  const key = new THREE.DirectionalLight(0xffd9b0, 1.1);
+  key.position.set(3, 4, 5); scene.add(key);
+  const rim = new THREE.DirectionalLight(0xff8b6b, 0.5);
+  rim.position.set(-4, 1, -2); scene.add(rim);
+
+  const fur    = new THREE.MeshStandardMaterial({ color: 0xffb783, roughness: 0.85 });
+  const dark   = new THREE.MeshStandardMaterial({ color: 0x1c1a17, roughness: 0.6 });
+  const nose   = new THREE.MeshStandardMaterial({ color: 0xe07856, roughness: 0.5 });
+  const eyeW   = new THREE.MeshStandardMaterial({ color: 0xf4ecd8, roughness: 0.3 });
+
+  const margay = new THREE.Group();
+  scene.add(margay);
+
+  // body
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.95, 32, 24), fur);
+  body.scale.set(1.05, 0.85, 0.95);
+  body.position.y = -0.85;
+  margay.add(body);
+
+  // head group (so we can swivel it)
+  const head = new THREE.Group();
+  head.position.set(0, 0.35, 0.1);
+  margay.add(head);
+
+  const skull = new THREE.Mesh(new THREE.SphereGeometry(0.78, 32, 24), fur);
+  head.add(skull);
+
+  // ears
+  const earGeom = new THREE.ConeGeometry(0.26, 0.5, 16);
+  const earL = new THREE.Mesh(earGeom, fur);
+  earL.position.set(-0.45, 0.7, 0); earL.rotation.z = 0.2; head.add(earL);
+  const earR = earL.clone(); earR.position.x = 0.45; earR.rotation.z = -0.2; head.add(earR);
+  const innerL = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.32, 12), dark);
+  innerL.position.set(-0.45, 0.62, 0.06); innerL.rotation.z = 0.2; head.add(innerL);
+  const innerR = innerL.clone(); innerR.position.x = 0.45; innerR.rotation.z = -0.2; head.add(innerR);
+
+  // eyes
+  const eyeGeom = new THREE.SphereGeometry(0.13, 16, 12);
+  const eyeL = new THREE.Mesh(eyeGeom, dark);
+  eyeL.position.set(-0.27, 0.05, 0.66); head.add(eyeL);
+  const eyeR = eyeL.clone(); eyeR.position.x = 0.27; head.add(eyeR);
+  const shineL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeW);
+  shineL.position.set(-0.24, 0.09, 0.78); head.add(shineL);
+  const shineR = shineL.clone(); shineR.position.x = 0.30; head.add(shineR);
+
+  // nose
+  const noseM = new THREE.Mesh(new THREE.ConeGeometry(0.07, 0.1, 8), nose);
+  noseM.rotation.x = Math.PI; noseM.position.set(0, -0.1, 0.78); head.add(noseM);
+
+  // spots — random small dark dots on body + head
+  const spotGeom = new THREE.SphereGeometry(0.07, 10, 10);
+  function addSpot(parent, pos) {
+    const s = new THREE.Mesh(spotGeom, dark);
+    s.position.copy(pos); s.scale.set(1, 0.3, 1);
+    parent.add(s);
+  }
+  for (let i = 0; i < 14; i++) {
+    const t = Math.random() * Math.PI * 2;
+    const p = Math.acos(2 * Math.random() - 1);
+    const r = 0.96;
+    addSpot(body, new THREE.Vector3(
+      r * Math.sin(p) * Math.cos(t),
+      r * Math.cos(p) * 0.85,
+      r * Math.sin(p) * Math.sin(t),
+    ));
+  }
+  for (let i = 0; i < 6; i++) {
+    const t = Math.random() * Math.PI * 2;
+    addSpot(skull, new THREE.Vector3(
+      0.78 * Math.cos(t) * 0.6,
+      0.78 * 0.4 + Math.random() * 0.2,
+      0.78 * Math.sin(t) * 0.6,
+    ));
+  }
+
+  // mouse target (with spring)
+  const mouse = new THREE.Vector2(0, 0);
+  const target = new THREE.Vector2(0, 0);
+  window.addEventListener('mousemove', (e) => {
+    const r = canvas.getBoundingClientRect();
+    target.x = ((e.clientX - r.left) / r.width  - 0.5) * 0.6;
+    target.y = ((e.clientY - r.top)  / r.height - 0.5) * 0.4;
+  });
+
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    camera.aspect = r.width / r.height;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let running = true;
+  const io = new IntersectionObserver(([e]) => { running = e.isIntersecting; }, { threshold: 0.01 });
+  io.observe(canvas);
+
+  let t = 0, raf;
+  function tick() {
+    raf = requestAnimationFrame(tick);
+    if (!running) return;
+    t += 0.016;
+
+    // spring toward mouse
+    mouse.x += (target.x - mouse.x) * 0.08;
+    mouse.y += (target.y - mouse.y) * 0.08;
+
+    if (!reduced) {
+      // idle breathe
+      const breathe = 1 + Math.sin(t * 1.6) * 0.03;
+      body.scale.set(1.05 * breathe, 0.85 * breathe, 0.95 * breathe);
+      // sway
+      margay.rotation.y = Math.sin(t * 0.4) * 0.15 + mouse.x * 0.6;
+      head.rotation.y = mouse.x * 0.9;
+      head.rotation.x = -mouse.y * 0.6 + Math.sin(t * 0.7) * 0.03;
+      // blink
+      const blink = (Math.sin(t * 0.6) > 0.985) ? 0.05 : 1;
+      eyeL.scale.y = blink; eyeR.scale.y = blink;
+    } else {
+      head.rotation.set(0, 0, 0);
+      margay.rotation.set(0, 0, 0);
+    }
+
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  window.addEventListener('beforeunload', () => {
+    cancelAnimationFrame(raf);
+    io.disconnect();
+    renderer.dispose();
+    scene.traverse((o) => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) o.material.dispose();
+    });
+  });
+}
+</script>
+
+</body>
+</html>
