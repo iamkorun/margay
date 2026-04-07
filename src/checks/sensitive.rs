@@ -38,10 +38,7 @@ pub fn check(path: &Path) -> Option<Issue> {
             category: Category::SensitiveTooOpen,
             mode: Some(mode),
             fix_mode: Some(fix_mode),
-            message: format!(
-                "sensitive file is world/group readable (mode {:o})",
-                mode
-            ),
+            message: format!("sensitive file is world/group readable (mode {:o})", mode),
         });
     }
     None

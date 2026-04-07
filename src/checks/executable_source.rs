@@ -5,8 +5,8 @@ use std::path::Path;
 use super::{ext_lower, file_mode, Category, Issue};
 
 const SOURCE_EXTS: &[&str] = &[
-    "rs", "go", "py", "ts", "js", "tsx", "jsx", "json", "toml", "yaml", "yml",
-    "md", "txt", "html", "css",
+    "rs", "go", "py", "ts", "js", "tsx", "jsx", "json", "toml", "yaml", "yml", "md", "txt", "html",
+    "css",
 ];
 
 pub fn check(path: &Path) -> Option<Issue> {
@@ -22,10 +22,7 @@ pub fn check(path: &Path) -> Option<Issue> {
             category: Category::SourceExecutable,
             mode: Some(mode),
             fix_mode: Some(fix_mode),
-            message: format!(
-                "source file is marked executable (mode {:o})",
-                mode
-            ),
+            message: format!("source file is marked executable (mode {:o})", mode),
         });
     }
     None

@@ -35,7 +35,10 @@ pub fn print_text(issues: &[Issue], quiet: bool) {
     // Group by category, preserving a stable ordering.
     let mut grouped: BTreeMap<&'static str, Vec<&Issue>> = BTreeMap::new();
     for issue in issues {
-        grouped.entry(issue.category.title()).or_default().push(issue);
+        grouped
+            .entry(issue.category.title())
+            .or_default()
+            .push(issue);
     }
 
     for (title, items) in &grouped {
