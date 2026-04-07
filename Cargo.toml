@@ -1,0 +1,23 @@
+[package]
+name = "margay"
+version = "0.1.0"
+edition = "2021"
+description = "Audit file permissions in a project tree"
+license = "MIT"
+repository = "https://github.com/iamkorun/margay"
+readme = "README.md"
+keywords = ["permissions", "cli", "security", "audit", "developer-tools"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+anyhow = "1"
+ignore = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+colored = "2"
+
+[dev-dependencies]
+assert_cmd = "2"
+tempfile = "3"
+predicates = "3"
