@@ -141,7 +141,7 @@
   </style>
 </head>
 
-<body class="min-h-[100dvh] bg-cream dark:bg-charcoal text-charcoal dark:text-cream font-display">
+<body class="min-h-[100dvh] bg-cream dark:bg-charcoal text-charcoal dark:text-cream font-display overflow-x-clip">
 
   <!-- ═══ NAV ═══ -->
   <nav class="sticky top-0 z-50 backdrop-blur-md border-b border-charcoal/8 dark:border-white/8 bg-cream/85 dark:bg-charcoal/85">
@@ -377,7 +377,7 @@ margay: fixed 5 issue(s)
 
         <div class="grid md:grid-cols-2 gap-8 md:gap-12">
           <!-- JSON -->
-          <div>
+          <div class="min-w-0">
             <h3 class="font-display font-bold text-xl md:text-2xl tracking-tight mb-3">Machine-readable output</h3>
             <p class="text-stone-warm dark:text-stone-warm-2 leading-relaxed text-sm mb-4">
               Pipe margay into <code class="text-peach-dark dark:text-peach font-mono">jq</code>, a custom reporter, or a GitHub Actions annotation step.
@@ -389,7 +389,7 @@ margay: fixed 5 issue(s)
           </div>
 
           <!-- CI -->
-          <div>
+          <div class="min-w-0">
             <h3 class="font-display font-bold text-xl md:text-2xl tracking-tight mb-3">GitHub Actions</h3>
             <p class="text-stone-warm dark:text-stone-warm-2 leading-relaxed text-sm mb-4">
               A permission bug never makes it back into <code class="text-peach-dark dark:text-peach font-mono">main</code>. Non-zero exit on findings, no flaky network calls.
